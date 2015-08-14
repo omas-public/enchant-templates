@@ -26,9 +26,6 @@ var SP2 = Class.create(BaseSprite,{
   initialize:function(x,y,bgcolor) {
     BaseSprite.call(this,x,y,bgcolor)
   },
-  onenterframe:function() {
-    this.moveBy(1,1);
-  },
 
   ontouchstart:function(e){
       this.backgroundColor = "red";
@@ -43,18 +40,12 @@ var SP2 = Class.create(BaseSprite,{
   }
 });
 
-var Stage = Class.create(Scene,{
-  initialize:function() {
-    Scene.call(this);
-    game.rootScene.addChild(this);
-  }
-});
 
 window.onload = function(){
 
   game = new Core(gs.width,gs.height);
   game.fps = gs.fps;
-  var stage = game.rootScene;
+  stage = game.rootScene;
   stage.backgroundColor = "yellow";
 
   game.onload = function(){
@@ -62,10 +53,9 @@ window.onload = function(){
     var sprite1 = new SP1(0,0,"green");
     var sprite2 = new SP2(100,100,"blue");
 
-
-    sprite2.on("enterframe",function(e){
-      if(this.intersect(sprite1)) 
-        sprite1.rotate(5);
+    sprite1.on("enterframe",function(e){
+      if(this.intersect(sprite2)) 
+        this.rotate(5);
     });
 
     stage.on("touchend",function(e){
