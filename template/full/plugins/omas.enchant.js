@@ -52,33 +52,45 @@ var ECore = enchant.Class.create(enchant.nineleap.Core, {
 
 /*
 * @extent ui.enchant.js(enchant.ui.Pad)
-* @construct param Core
+* @construct param Scene object
 * @usage pad = new Pad();
 */
 
 var EPad = enchant.Class.create(enchant.ui.Pad, {
-  initialize: function(game) {
+  initialize: function(scene) {
     enchant.ui.Pad.call(this);
     this.x = 0;
-    this.y = game.height - this.height;
-    game.currentScene.addChild(this);
+    this.y = scene.height - this.height;
+    scene.addChild(this);
   }
 });
 
 /*
 * @extent ui.enchant.js(enchant.ui.ScoreLabel)
-* @construct param game [x], [y]
+* @construct param scene ,[x], [y]
 * @usage scoreboard = new ScoreBoard();
 */
 
 var EScoreLabel = enchant.Class.create(enchant.ui.ScoreLabel, {
-  initialize: function(game, x, y) {
-    enchant.ui.ScoreLabel.call(this);
-    this.x = x || 0;
-    this.y = y || 0;
-    game.currentScene.addChild(this);
+  initialize: function(scene, x, y) {
+    enchant.ui.ScoreLabel.call(this, x, y);
+    scene.addChild(this);
   }
 });
+
+/*
+* @extent ui.enchant.js(enchant.ui.TimeLabel)
+* @construct param scene ,[x], [y]
+* @usage scoreboard = new ScoreBoard();
+*/
+
+var ETimeLabel = enchant.Class.create(enchant.ui.TimeLabel, {
+  initialize: function(scene, x, y, counttype) {
+    enchant.ui.TimeLabel.call(this, x, y, counttype);
+    scene.addChild(this);
+  }
+});
+
 
 var BaseChara = enchant.Class.create(enchant.Sprite, {
 
@@ -86,45 +98,32 @@ var BaseChara = enchant.Class.create(enchant.Sprite, {
     enchant.Sprite.call(this, asset.width, asset.height);
     this.age = 0;
     this.image = game.assets[asset.image];
+    this.range = {x:game.width, y:game.height};
     this.frame = asset.frame;
     this.x = x || 0;
     this.y = y || 0;
-    game.rootScene.addChild(this);
   },
 
   left: function() {
       this.scaleX = -1;
   },
 
-  right:function() {
+  right: function() {
       this.scaleX = 1;
   },
 
-  turn:function() {
+  turn: function() {
       this.scaleX *= -1;
+  },
+
+  remove: function() {
+    this.scene.removeChild(this);
+  },
+
+  isRange: function() {
+    return (this.x > 0 && this.x < (this.range.x - this.width))
+            && (this.y > 0 && this.y < (this.range.y - this.height));
   }
-
-  , remove:function() {
-    game.rootScene.removeChild(this);
-  }
-
-  , isRange:function() {
-    return (this.x > 0 && this.x < game.width)
-            && (this.y > 0 && this.y < game.height);
-  }
-
-  , isCollision: function(target) {
-    if (!Array.isArray(target)) {
-      target = new Array(target);
-    }
-
-    for (var i = 0; i < target.length; i++)
-      if (this.within(target[i],28)) {
-        return true;
-      }
-    return false;
-  }
-
 });
 
 
@@ -156,18 +155,21 @@ var Generator = (function() {
 
 var GS = enchant.Class.create({
   initialize: function(gs) {
-   var self = this;
+    this.setParameter(gs); // パラメータを渡す
+  },
+  setParameter: function(gs) {
+    var self = this;
+
     Object.keys(gs).forEach(function(key) {
       self[key] = gs[key];
     });
-    this.setParameter(); // URLからパラメータを渡す
-  },
-  setParameter: function() {
-    document.location.search.substr(1).split('&')
-      .forEach(function(urlParam) {
-        var keyString = urlParam.split('=');
 
-        this[keyString[0]] = parseInt(keyString[1], 10);
+    document.location.search.substr(1).split('&')
+      .map(function(queries) {
+        return queries.split('=');
+      })
+      .forEach(function(key) {
+        this[key[0]] = parseInt(key[1], 10);
       }, this);
   }
 });

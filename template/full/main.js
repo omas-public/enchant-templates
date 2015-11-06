@@ -26,8 +26,10 @@ window.onload = function() {
   stage = game.rootScene;
   game.onload = function() {
     game.setbackground(gs.assets.background);
-    stage.addChild(new EPad(game));
-    stage.addChild(new EScoreLabel(game));
+    var pad   = new EPad(stage);
+    var score = new EScoreLabel(stage);
+    var timer = new ETimeLabel(stage, score.width);
+
 
     stage.on('touchend', function() {
       game.end();
