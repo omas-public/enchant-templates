@@ -1,5 +1,5 @@
 /*eslint no-unused-vars:0 spaced-comment:0, newline-after-var:0*/
-/*globals Sprite*/
+/*globals Sprite Pad*/
 'use strict';
 
 
@@ -28,6 +28,45 @@ var Generator = (function() {
   return Generator;
 }());
 
+var GS = enchant.Class.create({
+  initialize: function(gs) {
+    this.setParameter(gs); // パラメータを渡す
+  },
+
+  setParameter: function(gs) {
+    var self = this;
+    Object.keys(gs).forEach(function(key) {
+      self[key] = gs[key];
+    });
+    document.location.search.substr(1).split('&')
+      .map(function(queries) {
+        return queries.split('=');
+      })
+      .forEach(function(key) {
+        this[key[0]] = parseInt(key[1], 10);
+      }, this);
+  }
+});
+
+
+var MyPad = enchant.Class.create(enchant.ui.Pad, {
+  initialize: function(scene) {
+    enchant.ui.Pad.call(this);
+    this.moveTo(0, scene.height - this.height);
+    scene.addChild(this);
+  }
+});
+
+var MyBackGround = enchant.Class.create(enchant.Sprite, {
+  initialize: function(game, asset) {
+    enchant.Sprite.call(this, asset.width, asset.height);
+    this.image = game.assets[asset.path];
+    this.moveTo(
+      ~~(game.width - asset.width) / 2
+      , ~~(game.height - asset.width) / 2
+    );
+  }
+});
 
 // 拡張Core
 var ECore = enchant.Class.create(enchant.nineleap.Core, {
@@ -53,7 +92,7 @@ var ECore = enchant.Class.create(enchant.nineleap.Core, {
     }
   },
 
-  setbackground: function(background) {
+  setStage: function(background) {
     switch (typeof background) {
       case 'string':
         this.currentScene.backgroundColor = background;
@@ -66,34 +105,14 @@ var ECore = enchant.Class.create(enchant.nineleap.Core, {
     }
   },
 
-  setbackgroundimage: function(background) {
-    var sprite = new Sprite(
-      background.width, background.height);
-    sprite.moveTo(~~(this.width - background.width) / 2, ~~(this.height - background.width) / 2);
-    sprite.image = this.assets[background.path];
-    this.currentScene.addChild(sprite);
-  }
-});
-
-
-var GS = enchant.Class.create({
-  initialize: function(gs) {
-    this.setParameter(gs); // パラメータを渡す
+  setbackgroundimage: function(asset) {
+    new MyBackGround(this, asset);
   },
 
-  setParameter: function(gs) {
-    var self = this;
-    Object.keys(gs).forEach(function(key) {
-      self[key] = gs[key];
-    });
-    document.location.search.substr(1).split('&')
-      .map(function(queries) {
-        return queries.split('=');
-      })
-      .forEach(function(key) {
-        this[key[0]] = parseInt(key[1], 10);
-      }, this);
+  setControlPad: function() {
+    this.currentScene.addChild(new MyPad(this.currentScene));
   }
+
 });
 
 var BaseChara = enchant.Class.create(enchant.Sprite, {
@@ -122,7 +141,7 @@ var BaseChara = enchant.Class.create(enchant.Sprite, {
   },
 
   remove: function() {
-    this.scene.removeChild(this);
+    this.parentNode.removeChild(this);
   },
 
   isRangeMinX: function() {
@@ -154,3 +173,4 @@ var BaseChara = enchant.Class.create(enchant.Sprite, {
   }
 
 });
+
